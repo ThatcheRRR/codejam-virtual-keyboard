@@ -80,11 +80,11 @@ const container = document.createElement('div'),
 
 let lang = 'rus',
     capsLock = false,
-    repeat = 0;
+    repeatShift = 0;
   
 container.className = 'container';
 keyboard.className = 'keyboard';
-  
+
 container.append(textarea);
 container.append(keyboard);
   
@@ -149,10 +149,12 @@ for (let i = 0; i < keys.length; i++) {
 }
   
 const addActiveKey = (elem) => {
+    if (elem === undefined) return;
     elem.classList.add('active-key');
 };
   
 const removeActiveKey = (elem) => {
+    if (elem === undefined) return;
     elem.classList.remove('active-key');
 };
   
@@ -219,16 +221,16 @@ document.addEventListener('keydown', function(event) {
             textarea.value += '\n';
         break;
         case 'CapsLock':
-        if (capsLock) {
-            removeActiveKey(elem);
-            capsLock = false;
-        } else {
-            addActiveKey(elem);
-            capsLock = true;
-        }
-            event.preventDefault();
-            changeCase();
-            break;
+            if (capsLock) {
+                removeActiveKey(elem);
+                capsLock = false;
+            } else {
+                addActiveKey(elem);
+                capsLock = true;
+            }
+                event.preventDefault();
+                changeCase();
+        break;
         case 'Backspace':
             textarea.value = textarea.value.substr(0, textarea.value.length - 1);
             addActiveKey(elem);
@@ -251,18 +253,19 @@ document.addEventListener('keydown', function(event) {
         case 'ShiftRight':
             event.preventDefault();
             addActiveKey(elem);
-            if (event.shiftKey && repeat === 0) {
+            if (event.shiftKey && repeatShift === 0) {
                 shiftActive();
-                repeat++
+                repeatShift++
             }
         break;
         default:
+            if (elem === undefined) break;
             addActiveKey(elem);
             textarea.value += elem.querySelectorAll(':not(.hidden)')[1].textContent;
         break;
     }
 });
-  
+
 document.addEventListener('keyup', function(event) {
     let elem = keyboard.getElementsByClassName(event.code)[0];
     switch (event.code) {
@@ -271,7 +274,7 @@ document.addEventListener('keyup', function(event) {
             event.preventDefault();
             removeActiveKey(elem);
             shiftActive();
-            repeat = 0;
+            repeatShift = 0;
         break;
         case 'CapsLock':
         break;
