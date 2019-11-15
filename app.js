@@ -74,11 +74,13 @@ const keys = [
     ],
 ];
   
-let container = document.createElement('div');
-let textarea = document.createElement('textarea');
-let keyboard = document.createElement('div');
-let lang = 'rus';
-let capsLock = false;
+const container = document.createElement('div'),
+      textarea = document.createElement('textarea'),
+      keyboard = document.createElement('div');
+
+let lang = 'rus',
+    capsLock = false,
+    repeat = 0;
   
 container.className = 'container';
 keyboard.className = 'keyboard';
@@ -93,6 +95,45 @@ for (let i = 0; i < keys.length; i++) {
         const key = document.createElement('div');
         key.classList.add('keyboard__key');
         key.classList.add(keys[i][j][0]);
+        if (i === 0 && j >= 1 && j < keys[i].length) {
+            key.insertAdjacentHTML('afterBegin',
+            `<div class = "rus">
+                <div class = "lowerCase noCapslock">${keys[i][j][1]}</div>
+                <div class = "upperCase hidden noCapslock">${keys[i][j][2]}</div>
+            </div>
+            <div class = "eng hidden">
+                <div class = "lowerCase hidden noCapslock">${keys[i][j][3]}</div>
+                <div class = "upperCase hidden noCapslock">${keys[i][j][4]}</div>
+            </div>`);
+            row.append(key);
+            continue;
+        }
+        if (i === 0 && j === 0 || key.classList.contains('Comma') || key.classList.contains('Period')|| key.classList.contains('Semicolon') || key.classList.contains('BracketLeft') || key.classList.contains('BracketRight'))  {
+            key.insertAdjacentHTML('afterBegin',
+            `<div class = "rus">
+                <div class = "lowerCase ">${keys[i][j][1]}</div>
+                <div class = "upperCase hidden">${keys[i][j][2]}</div>
+            </div>
+            <div class = "eng hidden">
+                <div class = "lowerCase hidden noCapslock">${keys[i][j][3]}</div>
+                <div class = "upperCase hidden noCapslock">${keys[i][j][4]}</div>
+            </div>`);
+            row.append(key);
+            continue;
+        }
+        if (key.classList.contains('Backslash') || key.classList.contains('Slash')) {
+            key.insertAdjacentHTML('afterBegin',
+            `<div class = "rus">
+                <div class = "lowerCase noCapslock">${keys[i][j][1]}</div>
+                <div class = "upperCase hidden noCapslock">${keys[i][j][2]}</div>
+            </div>
+            <div class = "eng hidden">
+                <div class = "lowerCase hidden noCapslock">${keys[i][j][3]}</div>
+                <div class = "upperCase hidden noCapslock">${keys[i][j][4]}</div>
+            </div>`);
+            row.append(key);
+            continue;
+        }
         key.insertAdjacentHTML('afterBegin',
         `<div class = "rus">
             <div class = "lowerCase ">${keys[i][j][1]}</div>
@@ -107,25 +148,34 @@ for (let i = 0; i < keys.length; i++) {
     keyboard.append(row);
 }
   
-let addActiveKey = (elem) => {
+const addActiveKey = (elem) => {
     elem.classList.add('active-key');
 };
   
-let removeActiveKey = (elem) => {
+const removeActiveKey = (elem) => {
     elem.classList.remove('active-key');
 };
   
 const changeCase = () => {
-    const language = keyboard.querySelectorAll(`div > .${lang}`);
-    for (let i = 0; i < language.length; i += 1) {
+    let language = keyboard.querySelectorAll(`div > .${lang}`);
+    for (let i = 0; i < language.length; i++) {
+        if (language[i].querySelectorAll('div')[0].classList.contains('noCapslock') || language[i].querySelectorAll('div')[1].classList.contains('noCapslock')) continue;
+        language[i].querySelectorAll('div')[0].classList.toggle('hidden');
+        language[i].querySelectorAll('div')[1].classList.toggle('hidden');
+    }
+};
+
+const shiftActive = () => {
+    let language = keyboard.querySelectorAll(`div > .${lang}`);
+    for (let i = 0; i < language.length; i++) {
         language[i].querySelectorAll('div')[0].classList.toggle('hidden');
         language[i].querySelectorAll('div')[1].classList.toggle('hidden');
     }
 };
   
 const changeLang = () => {
-    const previousLang = keyboard.querySelectorAll(`div > .${lang}`);
-    for (let i = 0; i < previousLang.length; i += 1) {
+    let previousLang = keyboard.querySelectorAll(`div > .${lang}`);
+    for (let i = 0; i < previousLang.length; i++) {
         previousLang[i].classList.toggle('hidden');
         previousLang[i].querySelector('div').classList.toggle('hidden');
     }
@@ -136,8 +186,8 @@ const changeLang = () => {
         lang = 'rus';
         sessionStorage.setItem('lang', lang);
     }
-    const nextLang = keyboard.querySelectorAll(`div > .${lang}`);
-    for (let i = 0; i < nextLang.length; i += 1) {
+    let nextLang = keyboard.querySelectorAll(`div > .${lang}`);
+    for (let i = 0; i < nextLang.length; i++) {
         nextLang[i].classList.toggle('hidden');
         nextLang[i].querySelector('div').classList.toggle('hidden');
     }
@@ -152,7 +202,7 @@ textarea.addEventListener('keydown', (event) => {
 });
 
 document.addEventListener('keydown', function(event) {
-    const elem = keyboard.getElementsByClassName(event.code)[0];
+    let elem = keyboard.getElementsByClassName(event.code)[0];
     if (event.altKey && event.ctrlKey) {
         addActiveKey(elem);
         changeLang();
@@ -201,7 +251,10 @@ document.addEventListener('keydown', function(event) {
         case 'ShiftRight':
             event.preventDefault();
             addActiveKey(elem);
-            changeCase();
+            if (event.shiftKey && repeat === 0) {
+                shiftActive();
+                repeat++
+            }
         break;
         default:
             addActiveKey(elem);
@@ -211,13 +264,14 @@ document.addEventListener('keydown', function(event) {
 });
   
 document.addEventListener('keyup', function(event) {
-    const elem = keyboard.getElementsByClassName(event.code)[0];
+    let elem = keyboard.getElementsByClassName(event.code)[0];
     switch (event.code) {
         case 'ShiftLeft':
         case 'ShiftRight':
             event.preventDefault();
             removeActiveKey(elem);
-            changeCase();
+            shiftActive();
+            repeat = 0;
         break;
         case 'CapsLock':
         break;
@@ -252,7 +306,7 @@ keyboard.addEventListener('mousedown', function(event) {
                     capsLock = false;
                 } else {
                     addActiveKey(event.target.closest('.keyboard__key'));
-                capsLock = true;
+                    capsLock = true;
                 }
                 changeCase();
             break;
@@ -274,7 +328,7 @@ keyboard.addEventListener('mousedown', function(event) {
             case 'ShiftRight':
                 event.preventDefault();
                 addActiveKey(elem);
-                changeCase();
+                shiftActive();
             break;
             default:
                 addActiveKey(elem);
@@ -293,7 +347,7 @@ keyboard.addEventListener('mouseup', function(event) {
         case 'ShiftRight':
             event.preventDefault();
             removeActiveKey(elem);
-            changeCase();
+            shiftActive();
         break;
         case 'CapsLock':
             event.preventDefault();
