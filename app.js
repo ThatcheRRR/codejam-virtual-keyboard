@@ -122,7 +122,9 @@ const removeActiveKey = (elem) => {
 const changeCase = () => {
   const language = keyboard.querySelectorAll(`div > .${lang}`);
   for (let i = 0; i < language.length; i += 1) {
-    if (language[i].querySelectorAll('div')[0].classList.contains('noCapslock') || language[i].querySelectorAll('div')[1].classList.contains('noCapslock')) continue;
+    while (language[i].querySelectorAll('div')[0].classList.contains('noCapslock') || language[i].querySelectorAll('div')[1].classList.contains('noCapslock')) {
+      i += 1;
+    }
     language[i].querySelectorAll('div')[0].classList.toggle('hidden');
     language[i].querySelectorAll('div')[1].classList.toggle('hidden');
   }
